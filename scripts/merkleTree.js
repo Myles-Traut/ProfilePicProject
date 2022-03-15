@@ -1,32 +1,77 @@
 const { MerkleTree } = require('merkletreejs');
 const keccak256 = require('keccak256');
 const { ethers } = require("hardhat");
+const fs = require('fs');
 
-const whiteListAddresses = [
-    "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-    "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-    "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-    "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-    "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
-    "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
-    "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
-    "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955"
+const privateKeyData = fs.readFileSync("./scripts/privateKeys.csv", "utf8");
+let pks = privateKeyData.split(",\n");
+
+let signerWallet1 = new ethers.Wallet(pks[0], ethers.provider);
+let signerWallet2 = new ethers.Wallet(pks[1], ethers.provider);
+let signerWallet3 = new ethers.Wallet(pks[2], ethers.provider);
+let signerWallet4 = new ethers.Wallet(pks[3], ethers.provider);
+let signerWallet5 = new ethers.Wallet(pks[4], ethers.provider);
+let signerWallet6 = new ethers.Wallet(pks[5], ethers.provider);
+let signerWallet7 = new ethers.Wallet(pks[6], ethers.provider);
+let signerWallet8 = new ethers.Wallet(pks[7], ethers.provider);
+
+
+// console.log(signerWallet);
+let walletAddresses = [
+    signerWallet1.address,
+    signerWallet2.address,
+    signerWallet3.address,
+    signerWallet4.address,
+    signerWallet5.address,
+    signerWallet6.address,
+    signerWallet7.address,
+    signerWallet8.address
 ];
 
-const leafNodes = whiteListAddresses.map(addr => keccak256(addr));
+let leafNodes = walletAddresses.map(addr => keccak256(addr));
+
 const merkletree = new MerkleTree(leafNodes, keccak256, {sortPairs : true});
 
-const rootHash = merkletree.getRoot();
+let rootHash = merkletree.getRoot();
 
-const claimingAddress = leafNodes[1];
-const merkleProof = merkletree.getHexProof(claimingAddress);
+let buyer1 = leafNodes[0];
+let buyer2 = leafNodes[1];
+let buyer3 = leafNodes[2];
+let buyer4 = leafNodes[3];
+let buyer5 = leafNodes[4];
+let buyer6 = leafNodes[5];
+let buyer7 = leafNodes[6];
+let buyer8 = leafNodes[7];
 
+let buyer1MerkleProof = merkletree.getHexProof(buyer1);
+let buyer2MerkleProof = merkletree.getHexProof(buyer2);
+let buyer3MerkleProof = merkletree.getHexProof(buyer3);
+let buyer4MerkleProof = merkletree.getHexProof(buyer4);
+let buyer5MerkleProof = merkletree.getHexProof(buyer5);
+let buyer6MerkleProof = merkletree.getHexProof(buyer6);
+let buyer7MerkleProof = merkletree.getHexProof(buyer7);
+let buyer8MerkleProof = merkletree.getHexProof(buyer8);
+
+rootHash = rootHash.toString("hex");
+console.log(rootHash);
+// console.log(merkletree.toString());
+// console.log(buyer1MerkleProof);
+// console.log(buyer2MerkleProof);
 module.exports = { 
-    whiteListAddresses,
-    merkleProof,
+    walletAddresses,
     merkletree,
     leafNodes,
     rootHash,
-};
+    signerWallet1,
+    signerWallet2,
+    buyer1MerkleProof,
+    buyer2MerkleProof,
+    buyer3MerkleProof,
+    buyer4MerkleProof,
+    buyer5MerkleProof,
+    buyer6MerkleProof,
+    buyer7MerkleProof,
+    buyer8MerkleProof
+}; 
 
 
