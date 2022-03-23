@@ -43,6 +43,7 @@ describe("tests", function () {
     });
     
     describe("initialises properly", function () {
+
         it("initialisation tests", async function () {
             expect(await NftPfp.owner()).to.be.equal(owner.address);
             expect(await NftPfp.name()).to.be.equal("TestPfp");
@@ -81,6 +82,29 @@ describe("tests", function () {
             );
             expect(await NftPfp.totalSupply()).to.equal(4);
             expect(await NftPfp.balanceOf(signerWallet1.address)).to.equal(4);
+        });
+
+        it("whiteList address can mint multiple times (Up to a quantity of 5)", async () => {
+            await NftPfp.connect(signerWallet1).whitelistMint(
+                signerWallet1.address,
+                2,
+                buyer1MerkleProof,
+                { value : parseEther("0.004") }
+            );
+
+            await NftPfp.connect(signerWallet1).whitelistMint(
+                signerWallet1.address,
+                2,
+                buyer1MerkleProof,
+                { value : parseEther("0.004") }
+            );
+            
+            await NftPfp.connect(signerWallet1).whitelistMint(
+                signerWallet1.address,
+                1,
+                buyer1MerkleProof,
+                { value : parseEther("0.002") }
+            );
         });
 
         it("updates whitelistClaimed mapping", async () => {
