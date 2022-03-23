@@ -53,10 +53,7 @@ let buyer7MerkleProof = merkletree.getHexProof(buyer7);
 let buyer8MerkleProof = merkletree.getHexProof(buyer8);
 
 rootHash = rootHash.toString("hex");
-console.log(rootHash);
-// console.log(merkletree.toString());
-// console.log(buyer1MerkleProof);
-// console.log(buyer2MerkleProof);
+
 module.exports = { 
     walletAddresses,
     merkletree,
