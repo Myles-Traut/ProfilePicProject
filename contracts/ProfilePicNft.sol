@@ -28,6 +28,7 @@ contract ProfilePic is ERC721A {
     address public owner;
 
     mapping(address => bool) public whitelistClaimed;
+    mapping(address => bool) public publicClaimed;
     mapping(address => uint256) public mintedTokens;
 
     bytes32 public merkleRoot;
@@ -72,11 +73,32 @@ contract ProfilePic is ERC721A {
         mintedTokens[to_] = quantity;
 
         if (mintedTokens[to_] >= 5) {
-            whitelistClaimed[msg.sender] = true;
+            whitelistClaimed[to_] = true;
         }
 
         _safeMint(to_, quantity);
     }
 
     // TODO write transfer function, public mint...
+
+    function mint(address to_, uint256 quantity) public payable {
+        require(
+            publicStartTime >= block.timestamp,
+            "public mint has not started"
+        );
+        require(quantity <= maxPublicMintAmount, "max mint amount exceeded");
+        require(
+            msg.value >= quantity * publicCost,
+            "Please spend minimum price"
+        );
+        require(!publicClaimed[to_], "Address has already claimed max");
+
+        mintedTokens[to_] = quantity;
+
+        if (mintedTokens[to_] >= 3) {
+            publicClaimed[to_] = true;
+        }
+
+        _safeMint(to_, quantity);
+    }
 }
