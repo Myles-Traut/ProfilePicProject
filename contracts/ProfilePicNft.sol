@@ -48,6 +48,9 @@ contract ProfilePic is ERC721A {
         owner = msg.sender;
     }
 
+    /*----------------------------
+        State Changing Functions 
+    -----------------------------*/
     function whitelistMint(
         address to_,
         uint256 quantity,
@@ -79,8 +82,6 @@ contract ProfilePic is ERC721A {
         _safeMint(to_, quantity);
     }
 
-    // TODO write transfer function, public mint...
-
     function mint(address to_, uint256 quantity) public payable {
         require(
             publicStartTime >= block.timestamp,
@@ -100,5 +101,25 @@ contract ProfilePic is ERC721A {
         }
 
         _safeMint(to_, quantity);
+    }
+
+    /*------------------
+        View Functions
+    --------------------*/
+
+    function getTokenID() public view returns (uint256) {
+        return _currentIndex;
+    }
+
+    function getStartingID() public view returns (uint256) {
+        return _startTokenId();
+    }
+
+    function numberMinted(address holder) public view returns (uint256) {
+        return _numberMinted(holder);
+    }
+
+    function getOwnerOf(uint256 tokenID) public view returns (address) {
+        return ownerOf(tokenID);
     }
 }
