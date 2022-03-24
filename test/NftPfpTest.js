@@ -28,13 +28,11 @@ describe("NftPfP tests", function () {
         notWhiteListed2 = accounts[15];
 
         timestamp = await (await ethers.provider.getBlock("latest")).timestamp;
-        whiteListStartTime = constants.TEST.oneDay + 1648033737;
-        publicStartTime = constants.TEST.oneMonth + 1648033737;
+        whiteListStartTime = constants.TEST.oneDay + timestamp;
+        publicStartTime = constants.TEST.oneMonth + timestamp;
 
         CoreContract = await ethers.getContractFactory("ProfilePic");
         NftPfp = await CoreContract.connect(owner).deploy(
-            "/testUri/",
-            "/testHiddenUri/",
             whiteListStartTime,
             publicStartTime,
             "0x59b8eb5570cba0bb401776e0de86c277b085e62cf3c1503934bf88e34c710eea"
@@ -48,13 +46,11 @@ describe("NftPfP tests", function () {
             expect(await NftPfp.owner()).to.be.equal(owner.address);
             expect(await NftPfp.name()).to.be.equal("TestPfp");
             expect(await NftPfp.symbol()).to.be.equal("TPFP");
-            expect(await NftPfp.baseUri()).to.be.equal("/testUri/");
-            expect(await NftPfp.hiddenBaseUri()).to.be.equal("/testHiddenUri/");
+            expect(await NftPfp.baseUri()).to.be.equal("");
             expect(await NftPfp.supply()).to.equal(100);
             expect(await NftPfp.maxWhiteListMintAmount()).to.equal(5);
             expect(await NftPfp.maxPublicMintAmount()).to.equal(3);
             expect(await NftPfp.totalSupply()).to.equal(0);
-            expect(await NftPfp.hidden()).to.equal(true);
             expect(await NftPfp.whitelistClaimed(signerWallet1.address)).to.equal(false);
             expect(await NftPfp.publicClaimed(notWhiteListed.address)).to.equal(false);
             expect(await NftPfp.mintedTokens(signerWallet1.address)).to.equal(0);
@@ -167,8 +163,6 @@ describe("NftPfP tests", function () {
 
                 CoreContract = await ethers.getContractFactory("ProfilePic");
                 NftPfp2 = await CoreContract.connect(owner).deploy(
-                "/testUri/",
-                "/testHiddenUri/",
                 whiteListStartTime,
                 publicStartTime,
                 "0x59b8eb5570cba0bb401776e0de86c277b085e62cf3c1503934bf88e34c710eea"
@@ -322,8 +316,6 @@ describe("NftPfP tests", function () {
 
                 CoreContract = await ethers.getContractFactory("ProfilePic");
                 NftPfp3 = await CoreContract.connect(owner).deploy(
-                "/testUri/",
-                "/testHiddenUri/",
                 whiteListStartTime,
                 publicStartTime,
                 "0x59b8eb5570cba0bb401776e0de86c277b085e62cf3c1503934bf88e34c710eea"
@@ -375,6 +367,78 @@ describe("NftPfP tests", function () {
         });
     });
 
+    describe("transfer tests", function () {
+        describe("state changing functions", function () {
+            it("owner can transfer", async () => {
+                await NftPfp.connect(notWhiteListed).mint(
+                    notWhiteListed.address,
+                    3,
+                    { value : parseEther("0.012") }
+                );
+
+                expect(await NftPfp.getOwnerOf(0)).to.equal(notWhiteListed.address);
+
+                await NftPfp.connect(notWhiteListed).transfer(
+                    notWhiteListed.address,
+                    notWhiteListed2.address,
+                    0
+                );
+
+                expect(await NftPfp.getOwnerOf(0)).to.equal(notWhiteListed2.address);
+                expect(await NftPfp.balanceOf(notWhiteListed.address)).to.equal(2);
+                expect(await NftPfp.balanceOf(notWhiteListed2.address)).to.equal(1);
+
+            });
+        });
+
+        describe("error tests", function () {
+            it("non owner cannot transfer", async () => {
+                await NftPfp.connect(notWhiteListed).mint(
+                    notWhiteListed.address,
+                    3,
+                    { value : parseEther("0.012") }
+                );
+
+                await expect(NftPfp.connect(notWhiteListed2).transfer(
+                    notWhiteListed.address,
+                    notWhiteListed2.address,
+                    0
+                )
+                ).to.be.revertedWith("TransferCallerNotOwnerNorApproved()");
+            });
+
+            it("transfer from address is incorrect owner", async () => {
+                await NftPfp.connect(notWhiteListed).mint(
+                    notWhiteListed.address,
+                    3,
+                    { value : parseEther("0.012") }
+                );
+
+                await expect(NftPfp.connect(notWhiteListed).transfer(
+                    notWhiteListed2.address,
+                    signerWallet1.address,
+                    0
+                )
+                ).to.be.revertedWith("TransferFromIncorrectOwner()");
+            });
+
+            it("cannot transfer to zero address", async () => {
+                await NftPfp.connect(notWhiteListed).mint(
+                    notWhiteListed.address,
+                    3,
+                    { value : parseEther("0.012") }
+                );
+
+                await expect(NftPfp.connect(notWhiteListed).transfer(
+                    notWhiteListed.address,
+                    ethers.constants.AddressZero,
+                    0
+                )
+                ).to.be.revertedWith("TransferToZeroAddress()");
+            });
+        });
+    });
+
     describe("View function tests", function () {
         it("number minted updates correctly", async () => {
             await NftPfp.connect(signerWallet1).whitelistMint(
@@ -385,37 +449,6 @@ describe("NftPfP tests", function () {
             );
             expect(await NftPfp.numberMinted(signerWallet1.address)).to.equal(2);
             expect(await NftPfp.numberMinted(signerWallet2.address)).to.equal(0);
-        });
-
-        it("getTokenID retruns correct value", async () => {
-            expect(await NftPfp.getTokenID()).to.equal(0);
-
-            await NftPfp.connect(signerWallet1).whitelistMint(
-                signerWallet1.address,
-                1,
-                buyer1MerkleProof,
-                { value : parseEther("0.002") }
-            );
-
-            expect(await NftPfp.getTokenID()).to.equal(1);
-
-            await NftPfp.connect(signerWallet2).whitelistMint(
-                signerWallet2.address,
-                1,
-                buyer2MerkleProof,
-                { value : parseEther("0.002") }
-            );
-
-            expect(await NftPfp.getTokenID()).to.equal(2);
-
-            await NftPfp.connect(signerWallet1).whitelistMint(
-                signerWallet1.address,
-                3,
-                buyer1MerkleProof,
-                { value : parseEther("0.006") }
-            );
-
-            expect(await NftPfp.getTokenID()).to.equal(5);
         });
 
         it("getOwnerOf return correct address", async () => {
@@ -435,5 +468,25 @@ describe("NftPfP tests", function () {
             expect(await NftPfp.getOwnerOf(2)).to.equal(notWhiteListed2.address);
         });
     });
-    
+
+    describe("internal functions", function () {
+        describe("state changing functions", function () {
+            it("tokenUri returns correctly", async () => {
+                await NftPfp.connect(owner).setBaseURI("/testUri/");
+                await NftPfp.connect(notWhiteListed).mint(
+                    notWhiteListed2.address,
+                    2,
+                    { value : parseEther("0.008") }
+                );
+                expect(await NftPfp.connect(owner).tokenURI(0)).to.equal("/testUri/0");
+            });
+        });
+        describe("error tests", function () {
+            it("only owner can set baseUri", async () => {
+                await expect(NftPfp.connect(signerWallet1).setBaseURI("ACDC"))
+                .to.be.revertedWith("Ownable: caller is not the owner")
+            });
+        });
+        
+    });
 }); 
