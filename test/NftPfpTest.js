@@ -47,16 +47,16 @@ describe("NftPfP tests", function () {
             expect(await NftPfp.name()).to.be.equal("TestPfp");
             expect(await NftPfp.symbol()).to.be.equal("TPFP");
             expect(await NftPfp.baseUri()).to.be.equal("");
-            expect(await NftPfp.supply()).to.equal(100);
-            expect(await NftPfp.maxWhiteListMintAmount()).to.equal(5);
-            expect(await NftPfp.maxPublicMintAmount()).to.equal(3);
+            expect(await NftPfp.SUPPLY()).to.equal(100);
+            expect(await NftPfp.MAX_WHITELIST_MINT_PER_PERSON()).to.equal(5);
+            expect(await NftPfp.MAX_PUBLIC_MINT_PER_PERSON()).to.equal(3);
             expect(await NftPfp.totalSupply()).to.equal(0);
             expect(await NftPfp.whitelistClaimed(signerWallet1.address)).to.equal(false);
             expect(await NftPfp.publicClaimed(notWhiteListed.address)).to.equal(false);
             expect(await NftPfp.mintedTokens(signerWallet1.address)).to.equal(0);
             expect(await NftPfp.mintedTokens(notWhiteListed.address)).to.equal(0);
-            expect(await NftPfp.whiteListCost()).to.equal(parseEther("0.002"));
-            expect(await NftPfp.publicCost()).to.equal(parseEther("0.004"));
+            expect(await NftPfp.WHITELIST_COST()).to.equal(parseEther("0.002"));
+            expect(await NftPfp.PUBLIC_COST()).to.equal(parseEther("0.004"));
             expect(await NftPfp.getStartingID()).to.equal(0);
         });
 
@@ -75,7 +75,6 @@ describe("NftPfP tests", function () {
 
             it("whiteList address can mint single NFT", async () => {
                 await NftPfp.connect(signerWallet1).whitelistMint(
-                    signerWallet1.address,
                     1,
                     buyer1MerkleProof,
                     { value : parseEther("0.002") }
@@ -85,31 +84,28 @@ describe("NftPfP tests", function () {
 
             it("whiteList address can mint multiple NFTs", async () => {
                 await NftPfp.connect(signerWallet1).whitelistMint(
-                    signerWallet1.address,
-                    4, buyer1MerkleProof,
+                    4, 
+                    buyer1MerkleProof,
                     { value : parseEther("0.008") }
                 );
                 expect(await NftPfp.totalSupply()).to.equal(4);
                 expect(await NftPfp.balanceOf(signerWallet1.address)).to.equal(4);
             });
 
-            it.only("whiteList address can mint multiple times (Up to a quantity of 5)", async () => {
+            it("whiteList address can mint multiple times (Up to a quantity of 5)", async () => {
                 await NftPfp.connect(signerWallet1).whitelistMint(
-                    signerWallet1.address,
                     2,
                     buyer1MerkleProof,
                     { value : parseEther("0.004") }
                 );
 
                 await NftPfp.connect(signerWallet1).whitelistMint(
-                    signerWallet1.address,
                     2,
                     buyer1MerkleProof,
                     { value : parseEther("0.004") }
                 );
                 
                 await NftPfp.connect(signerWallet1).whitelistMint(
-                    signerWallet1.address,
                     1,
                     buyer1MerkleProof,
                     { value : parseEther("0.002") }
@@ -119,7 +115,6 @@ describe("NftPfP tests", function () {
             it("updates whitelistClaimed mapping", async () => {
                 expect(await NftPfp.whitelistClaimed(signerWallet1.address)).to.equal(false);
                 await NftPfp.connect(signerWallet1).whitelistMint(
-                    signerWallet1.address,
                     5,
                     buyer1MerkleProof,
                     { value : parseEther("0.010") }
@@ -130,30 +125,18 @@ describe("NftPfP tests", function () {
             it("total supply updates correctly", async () => {
                 expect(await NftPfp.totalSupply()).to.equal(0);
                 await NftPfp.connect(signerWallet1).whitelistMint(
-                    signerWallet1.address,
                     4,
                     buyer1MerkleProof,
                     { value : parseEther("0.008") }
                     );
                 expect(await NftPfp.totalSupply()).to.equal(4);
                 await NftPfp.connect(signerWallet2).whitelistMint(
-                    signerWallet2.address,
                     2,
                     buyer2MerkleProof,
                     { value : parseEther("0.004") }
                     );
                 expect(await NftPfp.totalSupply()).to.equal(6);
             });
-
-            it("can whiteListMint to different address than signer", async () => {
-                await NftPfp.connect(signerWallet1).whitelistMint(
-                    signerWallet2.address,
-                    2,
-                    buyer2MerkleProof,
-                    { value : parseEther("0.004") }
-                    );
-                expect(await NftPfp.mintedTokens(signerWallet2.address)).to.equal(2);
-            }); 
         });
 
         describe("Whitelist error testing", function () {
@@ -169,7 +152,6 @@ describe("NftPfP tests", function () {
                 );
                 
                 await expect(NftPfp2.connect(signerWallet1).whitelistMint(
-                    signerWallet1.address,
                     1,
                     buyer1MerkleProof,
                     { value : parseEther("0.002") })
@@ -180,38 +162,38 @@ describe("NftPfP tests", function () {
             });
 
             it("cant mint more than max mint amount (5)", async () => {
-                await expect(NftPfp.connect(signerWallet1).whitelistMint(signerWallet1.address, 6, buyer1MerkleProof, { value : parseEther("0.012") }))
+                await expect(NftPfp.connect(signerWallet1).whitelistMint(
+                    6,
+                    buyer1MerkleProof,
+                    { value : parseEther("0.012") })
+                )
                 .to.be.revertedWith(
                     "max mint amount exceeded"
                     );
             });
 
-            it.only("cant incrementally mint more than max amount (5)", async () => {
-                await NftPfp.connect(signerWallet1).whitelistMint(
-                    signerWallet1.address, 
+            it("cant incrementally mint more than max amount (5)", async () => {
+                await NftPfp.connect(signerWallet1).whitelistMint( 
                     4,
                     buyer1MerkleProof,
                     { value : parseEther("0.012") }
                 );
 
-                await expect(NftPfp.connect(signerWallet1).whitelistMint(
-                    signerWallet1.address, 
+                await expect(NftPfp.connect(signerWallet1).whitelistMint( 
                     4,
                     buyer1MerkleProof,
                     { value : parseEther("0.012") }
-                )).to.be.revertedWith("Max mint amount will be exceeded.")
+                )).to.be.revertedWith("Max mint amount will be exceeded")
                     
             });
 
             it("address already claimed", async () => {
                 await NftPfp.connect(signerWallet1).whitelistMint(
-                    signerWallet1.address,
                     5,
                     buyer1MerkleProof,
                     { value : parseEther("0.010") }
                 );
                 await expect(NftPfp.connect(signerWallet1).whitelistMint(
-                    signerWallet1.address,
                     1,
                     buyer1MerkleProof,
                     { value : parseEther("0.002") })
@@ -223,7 +205,6 @@ describe("NftPfP tests", function () {
             
             it("nonWhiteListed address cannot claim", async () => {
                 await expect(NftPfp.connect(notWhiteListed).whitelistMint(
-                    notWhiteListed.address,
                     1,
                     buyer1MerkleProof,
                     { value : parseEther("0.002") })
@@ -233,19 +214,8 @@ describe("NftPfP tests", function () {
                     );
             });
 
-            it("signer cant whiteListMint to non whitelisted address", async () => {
-                await expect(NftPfp.connect(signerWallet1).whitelistMint(
-                    notWhiteListed.address,
-                    2,
-                    buyer2MerkleProof,
-                    { value : parseEther("0.004") }
-                    )
-                ).to.be.revertedWith("Invalid Proof");
-            })  
-
             it("incorrect value sent for purchase", async () => {
                 await expect(NftPfp.connect(signerWallet1).whitelistMint(
-                    signerWallet1.address,
                     2,
                     buyer1MerkleProof,
                     { value : parseEther("0.002") } )
@@ -267,7 +237,6 @@ describe("NftPfP tests", function () {
             
             it("mint", async () => {
                 await NftPfp.connect(notWhiteListed).mint(
-                    notWhiteListed.address,
                     1,
                     { value : parseEther("0.004") }
                 );
@@ -278,7 +247,6 @@ describe("NftPfP tests", function () {
             it("updates publicClaimed mapping", async () => {
                 expect(await NftPfp.publicClaimed(notWhiteListed.address)).to.equal(false);
                 await NftPfp.connect(notWhiteListed).mint(
-                    notWhiteListed.address,
                     3,
                     { value : parseEther("0.012") }
                     );
@@ -287,30 +255,26 @@ describe("NftPfP tests", function () {
 
             it("can mint multiple times (up to a max of 3)", async () => {
                 await NftPfp.connect(notWhiteListed).mint(
-                    notWhiteListed.address,
                     1,
                     { value : parseEther("0.004") }
                 );
                 await NftPfp.connect(notWhiteListed).mint(
-                    notWhiteListed.address,
                     1,
                     { value : parseEther("0.004") }
                 );
                 await NftPfp.connect(notWhiteListed).mint(
-                    notWhiteListed.address,
                     1,
                     { value : parseEther("0.004") }
                 );
+
                 it("mint updates total supply correctly", async () => {
                     expect(await NftPfp.totalSupply()).to.equal(0);
                     await NftPfp.connect(notWhiteListed).mint(
-                        notWhiteListed.address,
                         1,
                         { value : parseEther("0.004") }
                         );
                     expect(await NftPfp.totalSupply()).to.equal(1);
                     await NftPfp.connect(notWhiteListed2).mint(
-                        notWhiteListed2.address,
                         2,
                         { value : parseEther("0.008") }
                         );
@@ -319,7 +283,6 @@ describe("NftPfP tests", function () {
                 
                 it("can mint to different address than signer", async () => {
                     await NftPfp.connect(notWhiteListed2).mint(
-                        notWhiteListed1.address,
                         2,
                         { value : parseEther("0.008") }
                         );
@@ -339,7 +302,6 @@ describe("NftPfP tests", function () {
                 );
 
                 await expect(NftPfp3.connect(notWhiteListed).mint(
-                    notWhiteListed.address,
                     1,
                     { value : parseEther("0.004") })
                 )
@@ -350,16 +312,27 @@ describe("NftPfP tests", function () {
 
             it("max mint amount exceeded", async () => {
                 await expect(NftPfp.connect(notWhiteListed).mint(
-                    notWhiteListed.address,
                     4,
                     { value : parseEther("0.016") }
                     )
                 ).to.be.revertedWith("max mint amount exceeded");
             });
 
+            it("cannot mint more than max amount incrementally", async () => {
+                await NftPfp.connect(notWhiteListed).mint(
+                    2,
+                    { value : parseEther("0.008") }
+                );
+                
+                await expect(NftPfp.connect(notWhiteListed).mint(
+                    2,
+                    { value : parseEther("0.008") }
+                    )
+                ).to.be.revertedWith("Max mint amount will be exceeded");
+            });
+
             it("Please spend minimum price", async () => {
                 await expect(NftPfp.connect(notWhiteListed).mint(
-                    notWhiteListed.address,
                     1,
                     { value : parseEther("0.002") }
                     )
@@ -368,13 +341,11 @@ describe("NftPfP tests", function () {
 
             it("Address has already claimed max", async () => {
                 await NftPfp.connect(notWhiteListed).mint(
-                    notWhiteListed.address,
                     3,
                     { value : parseEther("0.012") }
                 );
 
                 await expect(NftPfp.connect(notWhiteListed).mint(
-                    notWhiteListed.address,
                     3,
                     { value : parseEther("0.012") }
                     )
@@ -388,7 +359,6 @@ describe("NftPfP tests", function () {
         describe("state changing functions", function () {
             it("owner can transfer", async () => {
                 await NftPfp.connect(notWhiteListed).mint(
-                    notWhiteListed.address,
                     3,
                     { value : parseEther("0.012") }
                 );
@@ -411,7 +381,6 @@ describe("NftPfP tests", function () {
         describe("error tests", function () {
             it("non owner cannot transfer", async () => {
                 await NftPfp.connect(notWhiteListed).mint(
-                    notWhiteListed.address,
                     3,
                     { value : parseEther("0.012") }
                 );
@@ -426,7 +395,6 @@ describe("NftPfP tests", function () {
 
             it("transfer from address is incorrect owner", async () => {
                 await NftPfp.connect(notWhiteListed).mint(
-                    notWhiteListed.address,
                     3,
                     { value : parseEther("0.012") }
                 );
@@ -441,7 +409,6 @@ describe("NftPfP tests", function () {
 
             it("cannot transfer to zero address", async () => {
                 await NftPfp.connect(notWhiteListed).mint(
-                    notWhiteListed.address,
                     3,
                     { value : parseEther("0.012") }
                 );
@@ -459,7 +426,6 @@ describe("NftPfP tests", function () {
     describe("View function tests", function () {
         it("number minted updates correctly", async () => {
             await NftPfp.connect(signerWallet1).whitelistMint(
-                signerWallet1.address,
                 2,
                 buyer1MerkleProof,
                 { value : parseEther("0.004") }
@@ -470,7 +436,6 @@ describe("NftPfP tests", function () {
 
         it("getOwnerOf return correct address", async () => {
             await NftPfp.connect(signerWallet1).whitelistMint(
-                signerWallet1.address,
                 1,
                 buyer1MerkleProof,
                 { value : parseEther("0.002") }
@@ -478,11 +443,10 @@ describe("NftPfP tests", function () {
             expect(await NftPfp.getOwnerOf(0)).to.equal(signerWallet1.address);
 
             await NftPfp.connect(notWhiteListed).mint(
-                notWhiteListed2.address,
                 2,
                 { value : parseEther("0.008") }
             );
-            expect(await NftPfp.getOwnerOf(2)).to.equal(notWhiteListed2.address);
+            expect(await NftPfp.getOwnerOf(2)).to.equal(notWhiteListed.address);
         });
     });
 
@@ -491,7 +455,6 @@ describe("NftPfP tests", function () {
             it("tokenUri returns correctly", async () => {
                 await NftPfp.connect(owner).setBaseURI("/testUri/");
                 await NftPfp.connect(notWhiteListed).mint(
-                    notWhiteListed2.address,
                     2,
                     { value : parseEther("0.008") }
                 );

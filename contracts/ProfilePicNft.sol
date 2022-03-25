@@ -16,11 +16,11 @@ contract ProfilePic is ERC721A, Ownable {
     uint256 public whiteListStartTime;
     uint256 public publicStartTime;
 
-    uint256 public supply = 100;
-    uint256 public maxWhiteListMintAmount = 5;
-    uint256 public maxPublicMintAmount = 3;
-    uint256 public whiteListCost = 0.002 ether;
-    uint256 public publicCost = 0.004 ether;
+    uint256 public constant SUPPLY = 100;
+    uint256 public constant MAX_WHITELIST_MINT_PER_PERSON = 5;
+    uint256 public constant MAX_PUBLIC_MINT_PER_PERSON = 3;
+    uint256 public constant WHITELIST_COST = 0.002 ether;
+    uint256 public constant PUBLIC_COST = 0.004 ether;
 
     mapping(address => bool) public whitelistClaimed;
     mapping(address => bool) public publicClaimed;
@@ -45,59 +45,73 @@ contract ProfilePic is ERC721A, Ownable {
     /*----------------------------
         State Changing Functions 
     -----------------------------*/
-    function whitelistMint(
-        address to_,
-        uint256 quantity,
-        bytes32[] calldata _merkleProof
-    ) public payable {
+
+    // whitelistMint and mint can only mint to the signers address.
+    // Minter must then use transfer() if they wish to transfer to another address.
+    function whitelistMint(uint256 quantity, bytes32[] calldata _merkleProof)
+        public
+        payable
+    {
         require(
             whiteListStartTime >= block.timestamp,
             "whitelist mint has not started"
         );
-        require(quantity <= maxWhiteListMintAmount, "max mint amount exceeded");
         require(
-            msg.value >= quantity * whiteListCost,
+            quantity <= MAX_WHITELIST_MINT_PER_PERSON,
+            "max mint amount exceeded"
+        );
+        require(
+            msg.value >= quantity * WHITELIST_COST,
             "Please spend minimum price"
         );
-        require(!whitelistClaimed[to_], "Address has already claimed max");
+        require(
+            !whitelistClaimed[msg.sender],
+            "Address has already claimed max"
+        );
 
-        bytes32 leaf = keccak256(abi.encodePacked(to_));
+        bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
         require(
             MerkleProof.verify(_merkleProof, merkleRoot, leaf),
             "Invalid Proof"
         );
 
-        if (mintedTokens[to_] >= maxWhiteListMintAmount) {
-            whitelistClaimed[to_] = true;
+        if (mintedTokens[msg.sender] + quantity > MAX_WHITELIST_MINT_PER_PERSON)
+            revert("Max mint amount will be exceeded");
+
+        mintedTokens[msg.sender] += quantity;
+
+        if (mintedTokens[msg.sender] == MAX_WHITELIST_MINT_PER_PERSON) {
+            whitelistClaimed[msg.sender] = true;
         }
 
-        if (mintedTokens[to_] + quantity > maxWhiteListMintAmount)
-            revert("Max mint amount will be exceeded.");
-
-        mintedTokens[to_] += quantity;
-
-        _safeMint(to_, quantity);
+        _safeMint(msg.sender, quantity);
     }
 
-    function mint(address to_, uint256 quantity) public payable {
+    function mint(uint256 quantity) public payable {
         require(
             publicStartTime >= block.timestamp,
             "public mint has not started"
         );
-        require(quantity <= maxPublicMintAmount, "max mint amount exceeded");
         require(
-            msg.value >= quantity * publicCost,
+            quantity <= MAX_PUBLIC_MINT_PER_PERSON,
+            "max mint amount exceeded"
+        );
+        require(
+            msg.value >= quantity * PUBLIC_COST,
             "Please spend minimum price"
         );
-        require(!publicClaimed[to_], "Address has already claimed max");
+        require(!publicClaimed[msg.sender], "Address has already claimed max");
 
-        mintedTokens[to_] = quantity;
+        if (mintedTokens[msg.sender] + quantity > MAX_PUBLIC_MINT_PER_PERSON)
+            revert("Max mint amount will be exceeded");
 
-        if (mintedTokens[to_] >= 3) {
-            publicClaimed[to_] = true;
+        mintedTokens[msg.sender] += quantity;
+
+        if (mintedTokens[msg.sender] >= MAX_PUBLIC_MINT_PER_PERSON) {
+            publicClaimed[msg.sender] = true;
         }
 
-        _safeMint(to_, quantity);
+        _safeMint(msg.sender, quantity);
     }
 
     // Does transfer need to be ownable? Dont want anyone tranferring tokens around
