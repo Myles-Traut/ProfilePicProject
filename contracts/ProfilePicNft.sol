@@ -67,11 +67,14 @@ contract ProfilePic is ERC721A, Ownable {
             "Invalid Proof"
         );
 
-        mintedTokens[to_] = quantity;
-
-        if (mintedTokens[to_] >= 5) {
+        if (mintedTokens[to_] >= maxWhiteListMintAmount) {
             whitelistClaimed[to_] = true;
         }
+
+        if (mintedTokens[to_] + quantity > maxWhiteListMintAmount)
+            revert("Max mint amount will be exceeded.");
+
+        mintedTokens[to_] += quantity;
 
         _safeMint(to_, quantity);
     }

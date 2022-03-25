@@ -93,7 +93,7 @@ describe("NftPfP tests", function () {
                 expect(await NftPfp.balanceOf(signerWallet1.address)).to.equal(4);
             });
 
-            it("whiteList address can mint multiple times (Up to a quantity of 5)", async () => {
+            it.only("whiteList address can mint multiple times (Up to a quantity of 5)", async () => {
                 await NftPfp.connect(signerWallet1).whitelistMint(
                     signerWallet1.address,
                     2,
@@ -184,6 +184,23 @@ describe("NftPfP tests", function () {
                 .to.be.revertedWith(
                     "max mint amount exceeded"
                     );
+            });
+
+            it.only("cant incrementally mint more than max amount (5)", async () => {
+                await NftPfp.connect(signerWallet1).whitelistMint(
+                    signerWallet1.address, 
+                    4,
+                    buyer1MerkleProof,
+                    { value : parseEther("0.012") }
+                );
+
+                await expect(NftPfp.connect(signerWallet1).whitelistMint(
+                    signerWallet1.address, 
+                    4,
+                    buyer1MerkleProof,
+                    { value : parseEther("0.012") }
+                )).to.be.revertedWith("Max mint amount will be exceeded.")
+                    
             });
 
             it("address already claimed", async () => {
