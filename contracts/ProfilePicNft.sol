@@ -36,8 +36,9 @@ contract ProfilePic is ERC721A, Ownable {
     }
 
     // TODO Add Events
-    // TODO Add set MerkleRoot function
-    // TODO Optimise
+    // TODO Optimise (Custom Errors)
+    // TODO add tokenuri
+    // TODO withdraw function
 
     /*----------------------------
         State Changing Functions 
@@ -136,6 +137,10 @@ contract ProfilePic is ERC721A, Ownable {
         return ownerOf(tokenID);
     }
 
+    function getBalance() public view onlyOwner returns (uint256) {
+        return address(this).balance;
+    }
+
     /*---------------------------
         ownly owner functions
     ----------------------------*/
@@ -146,6 +151,13 @@ contract ProfilePic is ERC721A, Ownable {
 
     function setMerkleRoot(bytes32 merkleRoot_) public onlyOwner {
         merkleRoot = merkleRoot_;
+    }
+
+    function withdrawEth() public onlyOwner {
+        uint256 amount = address(this).balance;
+        (bool sent, bytes memory data) = msg.sender.call{value: amount}("");
+        require(sent, "Failed to send Ether");
+        // emit Withdrawn(amount);
     }
 
     /*---------------------------

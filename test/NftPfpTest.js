@@ -479,10 +479,31 @@ describe("NftPfP tests", function () {
     });
 
     describe("Only Owner tests", function () {
-        it.only("Only owner can call setMerkleRoot", async () => {
+        it("Only owner can call setMerkleRoot", async () => {
             await expect(NftPfp.connect(signerWallet1).setMerkleRoot(
                 "0x59b8eb5570cba0bb401776e0de86c277b085e62cf3c1503934bf88e34c710eea"
             )).to.be.revertedWith("Ownable: caller is not the owner");
+        });
+
+        it("only owner can withdraw eth", async () => {
+            await NftPfp.connect(signerWallet1).mint(
+                1,
+                { value : parseEther("0.004")}
+            );
+            await expect(
+                NftPfp.connect(signerWallet1).withdrawEth()
+            ).to.be.revertedWith("Ownable: caller is not the owner");
+
+            let balanceBefore = await NftPfp.connect(owner).getBalance();
+            
+            expect(balanceBefore).to.equal(parseEther("0.004"));
+
+            await NftPfp.connect(owner).withdrawEth();
+
+            let balanceAfter = await NftPfp.connect(owner).getBalance();
+
+            expect(balanceAfter).to.equal(0);
+
         });
     });
 }); 
