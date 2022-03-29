@@ -28,14 +28,11 @@ contract ProfilePic is ERC721A, Ownable {
 
     bytes32 public merkleRoot;
 
-    constructor(
-        uint256 whiteListStartTime_,
-        uint256 publicStartTime_,
-        bytes32 merkleRoot_
-    ) ERC721A("TestPfp", "TPFP") {
+    constructor(uint256 whiteListStartTime_, uint256 publicStartTime_)
+        ERC721A("TestPfp", "TPFP")
+    {
         whiteListStartTime = whiteListStartTime_;
         publicStartTime = publicStartTime_;
-        merkleRoot = merkleRoot_;
     }
 
     // TODO Add Events
@@ -145,6 +142,10 @@ contract ProfilePic is ERC721A, Ownable {
 
     function setBaseURI(string memory _baseUri) public onlyOwner {
         baseUri = _baseUri;
+    }
+
+    function setMerkleRoot(bytes32 merkleRoot_) public onlyOwner {
+        merkleRoot = merkleRoot_;
     }
 
     /*---------------------------

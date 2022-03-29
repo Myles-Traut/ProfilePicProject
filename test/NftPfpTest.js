@@ -35,8 +35,11 @@ describe("NftPfP tests", function () {
         NftPfp = await CoreContract.connect(owner).deploy(
             whiteListStartTime,
             publicStartTime,
-            "0x59b8eb5570cba0bb401776e0de86c277b085e62cf3c1503934bf88e34c710eea"
             );
+        
+        await NftPfp.connect(owner).setMerkleRoot(
+            "0x59b8eb5570cba0bb401776e0de86c277b085e62cf3c1503934bf88e34c710eea"
+        );
 
     });
     
@@ -148,7 +151,9 @@ describe("NftPfP tests", function () {
                 NftPfp2 = await CoreContract.connect(owner).deploy(
                 whiteListStartTime,
                 publicStartTime,
-                "0x59b8eb5570cba0bb401776e0de86c277b085e62cf3c1503934bf88e34c710eea"
+                );
+                await NftPfp2.connect(owner).setMerkleRoot(
+                    "0x59b8eb5570cba0bb401776e0de86c277b085e62cf3c1503934bf88e34c710eea"
                 );
                 
                 await expect(NftPfp2.connect(signerWallet1).whitelistMint(
@@ -298,7 +303,10 @@ describe("NftPfP tests", function () {
                 NftPfp3 = await CoreContract.connect(owner).deploy(
                 whiteListStartTime,
                 publicStartTime,
-                "0x59b8eb5570cba0bb401776e0de86c277b085e62cf3c1503934bf88e34c710eea"
+                );
+
+                await NftPfp3.connect(owner).setMerkleRoot(
+                    "0x59b8eb5570cba0bb401776e0de86c277b085e62cf3c1503934bf88e34c710eea"
                 );
 
                 await expect(NftPfp3.connect(notWhiteListed).mint(
