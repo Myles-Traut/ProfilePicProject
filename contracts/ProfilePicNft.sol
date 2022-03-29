@@ -38,8 +38,15 @@ contract ProfilePic is ERC721A, Ownable {
     }
 
     // TODO Add Events
+
+    // EVENTS
+
+    event WhitelistMinted(address owner, uint256 quantity);
+    event Minted(address owner, uint256 quantity);
+    event Transfered(address from, address to, uint256 tokenID);
+    event Withdrawn(uint256 amount);
+
     // TODO Optimise (Custom Errors)
-    // TODO add tokenuri
 
     /*----------------------------
         State Changing Functions 
@@ -84,6 +91,8 @@ contract ProfilePic is ERC721A, Ownable {
         }
 
         _safeMint(msg.sender, quantity);
+
+        emit WhitelistMinted(msg.sender, quantity);
     }
 
     function mint(uint256 quantity) public payable {
@@ -111,6 +120,8 @@ contract ProfilePic is ERC721A, Ownable {
         }
 
         _safeMint(msg.sender, quantity);
+
+        emit Minted(msg.sender, quantity);
     }
 
     // Does transfer need to be ownable? Dont want anyone tranferring tokens around
@@ -120,6 +131,7 @@ contract ProfilePic is ERC721A, Ownable {
         uint256 tokenID
     ) public {
         safeTransferFrom(from_, to_, tokenID);
+        emit Transfered(from_, to_, tokenID);
     }
 
     /*------------------
@@ -158,13 +170,14 @@ contract ProfilePic is ERC721A, Ownable {
         uint256 amount = address(this).balance;
         (bool sent, bytes memory data) = msg.sender.call{value: amount}("");
         require(sent, "Failed to send Ether");
-        // emit Withdrawn(amount);
+        emit Withdrawn(amount);
     }
 
     function tokenURI(uint256 tokenId)
         public
         view
         override
+        onlyOwner
         returns (string memory)
     {
         if (!_exists(tokenId)) revert URIQueryForNonexistentToken();

@@ -505,5 +505,9 @@ describe("NftPfP tests", function () {
             expect(balanceAfter).to.equal(0);
 
         });
+        it.only("only owner can call tokenUri", async () => {
+            await expect(NftPfp.connect(signerWallet1).tokenURI(0))
+            .to.be.revertedWith("Ownable: caller is not the owner");
+        })
     });
 }); 
