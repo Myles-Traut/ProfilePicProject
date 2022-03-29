@@ -37,8 +37,6 @@ contract ProfilePic is ERC721A, Ownable {
         publicStartTime = publicStartTime_;
     }
 
-    // TODO Add Events
-
     // EVENTS
 
     event WhitelistMinted(address owner, uint256 quantity);

@@ -510,4 +510,50 @@ describe("NftPfP tests", function () {
             .to.be.revertedWith("Ownable: caller is not the owner");
         })
     });
-}); 
+
+    describe("event tests", () => {
+        it("emits WhitelistMinted", async () => {
+          await expect(NftPfp.connect(signerWallet1).whitelistMint(
+              1,
+              buyer1MerkleProof,
+              { value : parseEther("0.002")}
+              )
+            ).to.emit(NftPfp, "WhitelistMinted")
+            .withArgs(signerWallet1.address, 1);
+        });
+
+        it("emits Minted", async () => {
+            await expect(NftPfp.connect(notWhiteListed).mint(
+                1,
+                { value : parseEther("0.004")}
+                )
+              ).to.emit(NftPfp, "Minted")
+              .withArgs(notWhiteListed.address, 1);
+          });
+
+          it.only("emits Transfered", async () => {
+            await NftPfp.connect(notWhiteListed).mint(
+                1,
+                { value : parseEther("0.004")});
+            
+            await expect(NftPfp.connect(notWhiteListed).transfer(
+                notWhiteListed.address,
+                signerWallet1.address,
+                0)
+            ).to.emit(NftPfp, "Transfered").withArgs(
+                notWhiteListed.address,
+                signerWallet1.address,
+                0
+                );
+          });
+
+          it.only("emits Withdrawn", async () => {
+            await NftPfp.connect(notWhiteListed).mint(
+                2,
+                { value : parseEther("0.008") }
+            );
+            await expect(NftPfp.connect(owner).withdrawEth()).to.emit
+            (NftPfp, "Withdrawn").withArgs(parseEther("0.008"));
+          });
+    }); 
+});
