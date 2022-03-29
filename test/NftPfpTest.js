@@ -460,13 +460,13 @@ describe("NftPfP tests", function () {
 
     describe("internal functions", function () {
         describe("state changing functions", function () {
-            it("tokenUri returns correctly", async () => {
+            it.only("tokenUri returns correctly", async () => {
                 await NftPfp.connect(owner).setBaseURI("/testUri/");
                 await NftPfp.connect(notWhiteListed).mint(
                     2,
                     { value : parseEther("0.008") }
                 );
-                expect(await NftPfp.connect(owner).tokenURI(0)).to.equal("/testUri/0");
+                expect(await NftPfp.connect(owner).tokenURI(0)).to.equal("/testUri/0.json");
             });
         });
         describe("error tests", function () {

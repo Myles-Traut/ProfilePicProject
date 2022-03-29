@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract ProfilePic is ERC721A, Ownable {
+    using Strings for uint256;
+
     /*---------------
         Storage
     ---------------*/
@@ -38,7 +40,6 @@ contract ProfilePic is ERC721A, Ownable {
     // TODO Add Events
     // TODO Optimise (Custom Errors)
     // TODO add tokenuri
-    // TODO withdraw function
 
     /*----------------------------
         State Changing Functions 
@@ -158,6 +159,21 @@ contract ProfilePic is ERC721A, Ownable {
         (bool sent, bytes memory data) = msg.sender.call{value: amount}("");
         require(sent, "Failed to send Ether");
         // emit Withdrawn(amount);
+    }
+
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override
+        returns (string memory)
+    {
+        if (!_exists(tokenId)) revert URIQueryForNonexistentToken();
+
+        string memory baseURI = _baseURI();
+        return
+            bytes(baseURI).length != 0
+                ? string(abi.encodePacked(baseURI, tokenId.toString(), ".json"))
+                : "";
     }
 
     /*---------------------------
