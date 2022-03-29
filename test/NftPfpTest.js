@@ -477,4 +477,12 @@ describe("NftPfP tests", function () {
         });
         
     });
+
+    describe("Only Owner tests", function () {
+        it.only("Only owner can call setMerkleRoot", async () => {
+            await expect(NftPfp.connect(signerWallet1).setMerkleRoot(
+                "0x59b8eb5570cba0bb401776e0de86c277b085e62cf3c1503934bf88e34c710eea"
+            )).to.be.revertedWith("Ownable: caller is not the owner");
+        });
+    });
 }); 
