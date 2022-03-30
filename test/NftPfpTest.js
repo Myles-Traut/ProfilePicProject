@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { parseEther } = require("ethers/lib/utils");
 const { ethers } = require("hardhat");
-const { constants, fastForward } = require("./constants.test");
+const { constants } = require("./constants.test");
 const { 
     walletAddresses,
     signerWallet1,
