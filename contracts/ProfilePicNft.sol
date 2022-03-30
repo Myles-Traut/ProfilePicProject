@@ -66,16 +66,17 @@ contract ProfilePic is ERC721A, Ownable {
         public
         payable
     {
-        if (whiteListStartTime >= block.timestamp)
-            revert WhitelistMintNotOpen();
-        if (quantity <= MAX_WHITELIST_MINT_PER_PERSON)
+        if (whiteListStartTime < block.timestamp) revert WhitelistMintNotOpen();
+        if (quantity > MAX_WHITELIST_MINT_PER_PERSON)
             revert MaxMintAmountExceeded();
-        if (msg.value >= quantity * WHITELIST_COST) revert SpendMinimumPrice();
-        if (!whitelistClaimed[msg.sender]) revert MaxClaimed();
+        if (msg.value < quantity * WHITELIST_COST) revert SpendMinimumPrice();
+        if (whitelistClaimed[msg.sender] == true) revert MaxClaimed();
 
         bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
-        if (MerkleProof.verify(_merkleProof, merkleRoot, leaf))
-            revert InvalidProof();
+        require(
+            MerkleProof.verify(_merkleProof, merkleRoot, leaf),
+            "Invalid Proof"
+        );
 
         if (mintedTokens[msg.sender] + quantity > MAX_WHITELIST_MINT_PER_PERSON)
             revert MaxAmountWillBeExceeded();
@@ -92,17 +93,17 @@ contract ProfilePic is ERC721A, Ownable {
     }
 
     function mint(uint256 quantity) public payable {
-        if (publicStartTime >= block.timestamp) revert PublicMintNotOpen();
-        if (quantity <= MAX_PUBLIC_MINT_PER_PERSON)
+        if (publicStartTime < block.timestamp) revert PublicMintNotOpen();
+        if (quantity > MAX_PUBLIC_MINT_PER_PERSON)
             revert MaxMintAmountExceeded();
-        if (msg.value >= quantity * PUBLIC_COST) revert SpendMinimumPrice();
-        if (!publicClaimed[msg.sender]) revert MaxClaimed();
+        if (msg.value < quantity * PUBLIC_COST) revert SpendMinimumPrice();
+        if (publicClaimed[msg.sender] == true) revert MaxClaimed();
         if (mintedTokens[msg.sender] + quantity > MAX_PUBLIC_MINT_PER_PERSON)
             revert MaxAmountWillBeExceeded();
 
         mintedTokens[msg.sender] += quantity;
 
-        if (mintedTokens[msg.sender] >= MAX_PUBLIC_MINT_PER_PERSON) {
+        if (mintedTokens[msg.sender] == MAX_PUBLIC_MINT_PER_PERSON) {
             publicClaimed[msg.sender] = true;
         }
 

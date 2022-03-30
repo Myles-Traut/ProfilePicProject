@@ -162,7 +162,7 @@ describe("NftPfP tests", function () {
                     { value : parseEther("0.002") })
                 )
                 .to.be.revertedWith(
-                    "whitelist mint has not started"
+                    "WhitelistMintNotOpen()"
                     );
             });
 
@@ -173,7 +173,7 @@ describe("NftPfP tests", function () {
                     { value : parseEther("0.012") })
                 )
                 .to.be.revertedWith(
-                    "max mint amount exceeded"
+                    "MaxMintAmountExceeded()"
                     );
             });
 
@@ -188,7 +188,7 @@ describe("NftPfP tests", function () {
                     4,
                     buyer1MerkleProof,
                     { value : parseEther("0.012") }
-                )).to.be.revertedWith("Max mint amount will be exceeded")
+                )).to.be.revertedWith("MaxAmountWillBeExceeded()")
                     
             });
 
@@ -204,7 +204,7 @@ describe("NftPfP tests", function () {
                     { value : parseEther("0.002") })
                 )
                 .to.be.revertedWith(
-                    "Address has already claimed"
+                    "MaxClaimed()"
                     );
             });
             
@@ -226,7 +226,7 @@ describe("NftPfP tests", function () {
                     { value : parseEther("0.002") } )
                 )
                 .to.be.revertedWith(
-                    "Please spend minimum price"
+                    "SpendMinimumPrice()"
                     );
             });
 
@@ -314,7 +314,7 @@ describe("NftPfP tests", function () {
                     { value : parseEther("0.004") })
                 )
                 .to.be.revertedWith(
-                    "public mint has not started"
+                    "PublicMintNotOpen()"
                     );
             });
 
@@ -323,7 +323,7 @@ describe("NftPfP tests", function () {
                     4,
                     { value : parseEther("0.016") }
                     )
-                ).to.be.revertedWith("max mint amount exceeded");
+                ).to.be.revertedWith("MaxMintAmountExceeded()");
             });
 
             it("cannot mint more than max amount incrementally", async () => {
@@ -336,7 +336,7 @@ describe("NftPfP tests", function () {
                     2,
                     { value : parseEther("0.008") }
                     )
-                ).to.be.revertedWith("Max mint amount will be exceeded");
+                ).to.be.revertedWith("MaxAmountWillBeExceeded()");
             });
 
             it("Please spend minimum price", async () => {
@@ -344,7 +344,7 @@ describe("NftPfP tests", function () {
                     1,
                     { value : parseEther("0.002") }
                     )
-                ).to.be.revertedWith("Please spend minimum price");
+                ).to.be.revertedWith("SpendMinimumPrice()");
             });
 
             it("Address has already claimed max", async () => {
@@ -357,7 +357,7 @@ describe("NftPfP tests", function () {
                     3,
                     { value : parseEther("0.012") }
                     )
-                ).to.be.revertedWith("Address has already claimed max")
+                ).to.be.revertedWith("MaxClaimed()")
                 
             })
         });
@@ -460,7 +460,7 @@ describe("NftPfP tests", function () {
 
     describe("internal functions", function () {
         describe("state changing functions", function () {
-            it.only("tokenUri returns correctly", async () => {
+            it("tokenUri returns correctly", async () => {
                 await NftPfp.connect(owner).setBaseURI("/testUri/");
                 await NftPfp.connect(notWhiteListed).mint(
                     2,
@@ -505,7 +505,7 @@ describe("NftPfP tests", function () {
             expect(balanceAfter).to.equal(0);
 
         });
-        it.only("only owner can call tokenUri", async () => {
+        it("only owner can call tokenUri", async () => {
             await expect(NftPfp.connect(signerWallet1).tokenURI(0))
             .to.be.revertedWith("Ownable: caller is not the owner");
         })
@@ -531,7 +531,7 @@ describe("NftPfP tests", function () {
               .withArgs(notWhiteListed.address, 1);
           });
 
-          it.only("emits Transfered", async () => {
+          it("emits Transfered", async () => {
             await NftPfp.connect(notWhiteListed).mint(
                 1,
                 { value : parseEther("0.004")});
@@ -547,7 +547,7 @@ describe("NftPfP tests", function () {
                 );
           });
 
-          it.only("emits Withdrawn", async () => {
+          it("emits Withdrawn", async () => {
             await NftPfp.connect(notWhiteListed).mint(
                 2,
                 { value : parseEther("0.008") }
