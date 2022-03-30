@@ -60,7 +60,7 @@ describe("NftPfP tests", function () {
             expect(await NftPfp.mintedTokens(notWhiteListed.address)).to.equal(0);
             expect(await NftPfp.WHITELIST_COST()).to.equal(parseEther("0.002"));
             expect(await NftPfp.PUBLIC_COST()).to.equal(parseEther("0.004"));
-            expect(await NftPfp.getStartingID()).to.equal(0);
+            expect(await NftPfp.getStartingID()).to.equal(1);
         });
 
         describe("Initialization error testing", function () {
@@ -371,15 +371,15 @@ describe("NftPfP tests", function () {
                     { value : parseEther("0.012") }
                 );
 
-                expect(await NftPfp.getOwnerOf(0)).to.equal(notWhiteListed.address);
+                expect(await NftPfp.getOwnerOf(1)).to.equal(notWhiteListed.address);
 
                 await NftPfp.connect(notWhiteListed).transfer(
                     notWhiteListed.address,
                     notWhiteListed2.address,
-                    0
+                    1
                 );
 
-                expect(await NftPfp.getOwnerOf(0)).to.equal(notWhiteListed2.address);
+                expect(await NftPfp.getOwnerOf(1)).to.equal(notWhiteListed2.address);
                 expect(await NftPfp.balanceOf(notWhiteListed.address)).to.equal(2);
                 expect(await NftPfp.balanceOf(notWhiteListed2.address)).to.equal(1);
 
@@ -396,7 +396,7 @@ describe("NftPfP tests", function () {
                 await expect(NftPfp.connect(notWhiteListed2).transfer(
                     notWhiteListed.address,
                     notWhiteListed2.address,
-                    0
+                    1
                 )
                 ).to.be.revertedWith("TransferCallerNotOwnerNorApproved()");
             });
@@ -410,7 +410,7 @@ describe("NftPfP tests", function () {
                 await expect(NftPfp.connect(notWhiteListed).transfer(
                     notWhiteListed2.address,
                     signerWallet1.address,
-                    0
+                    1
                 )
                 ).to.be.revertedWith("TransferFromIncorrectOwner()");
             });
@@ -424,7 +424,7 @@ describe("NftPfP tests", function () {
                 await expect(NftPfp.connect(notWhiteListed).transfer(
                     notWhiteListed.address,
                     ethers.constants.AddressZero,
-                    0
+                    1
                 )
                 ).to.be.revertedWith("TransferToZeroAddress()");
             });
@@ -448,13 +448,13 @@ describe("NftPfP tests", function () {
                 buyer1MerkleProof,
                 { value : parseEther("0.002") }
             )
-            expect(await NftPfp.getOwnerOf(0)).to.equal(signerWallet1.address);
+            expect(await NftPfp.getOwnerOf(1)).to.equal(signerWallet1.address);
 
             await NftPfp.connect(notWhiteListed).mint(
                 2,
                 { value : parseEther("0.008") }
             );
-            expect(await NftPfp.getOwnerOf(2)).to.equal(notWhiteListed.address);
+            expect(await NftPfp.getOwnerOf(3)).to.equal(notWhiteListed.address);
         });
     });
 
@@ -466,7 +466,8 @@ describe("NftPfP tests", function () {
                     2,
                     { value : parseEther("0.008") }
                 );
-                expect(await NftPfp.connect(owner).tokenURI(0)).to.equal("/testUri/0.json");
+                expect(await NftPfp.connect(owner).tokenURI(1)).to.equal("/testUri/1.json");
+                expect(await NftPfp.connect(owner).tokenURI(2)).to.equal("/testUri/2.json");
             });
         });
         describe("error tests", function () {
@@ -539,11 +540,11 @@ describe("NftPfP tests", function () {
             await expect(NftPfp.connect(notWhiteListed).transfer(
                 notWhiteListed.address,
                 signerWallet1.address,
-                0)
+                1)
             ).to.emit(NftPfp, "Transfered").withArgs(
                 notWhiteListed.address,
                 signerWallet1.address,
-                0
+                1
                 );
           });
 

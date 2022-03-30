@@ -44,8 +44,6 @@ contract ProfilePic is ERC721A, Ownable {
     event Transfered(address from, address to, uint256 tokenID);
     event Withdrawn(uint256 amount);
 
-    // TODO Optimise (Custom Errors)
-
     // ERRORS
 
     error WhitelistMintNotOpen();
@@ -126,7 +124,7 @@ contract ProfilePic is ERC721A, Ownable {
         View Functions
     --------------------*/
 
-    function getStartingID() public view returns (uint256) {
+    function getStartingID() public pure returns (uint256) {
         return _startTokenId();
     }
 
@@ -180,6 +178,10 @@ contract ProfilePic is ERC721A, Ownable {
     /*---------------------------
         internal functions
     ----------------------------*/
+
+    function _startTokenId() internal pure override returns (uint256) {
+        return 1;
+    }
 
     function _baseURI() internal view override returns (string memory) {
         return baseUri;
