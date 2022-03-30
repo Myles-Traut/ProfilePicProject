@@ -46,6 +46,16 @@ contract ProfilePic is ERC721A, Ownable {
 
     // TODO Optimise (Custom Errors)
 
+    // ERRORS
+
+    error WhitelistMintNotOpen();
+    error PublicMintNotOpen();
+    error MaxMintAmountExceeded();
+    error SpendMinimumPrice();
+    error MaxClaimed();
+    error InvalidProof();
+    error MaxAmountWillBeExceeded();
+
     /*----------------------------
         State Changing Functions 
     -----------------------------*/
@@ -56,31 +66,19 @@ contract ProfilePic is ERC721A, Ownable {
         public
         payable
     {
-        require(
-            whiteListStartTime >= block.timestamp,
-            "whitelist mint has not started"
-        );
-        require(
-            quantity <= MAX_WHITELIST_MINT_PER_PERSON,
-            "max mint amount exceeded"
-        );
-        require(
-            msg.value >= quantity * WHITELIST_COST,
-            "Please spend minimum price"
-        );
-        require(
-            !whitelistClaimed[msg.sender],
-            "Address has already claimed max"
-        );
+        if (whiteListStartTime >= block.timestamp)
+            revert WhitelistMintNotOpen();
+        if (quantity <= MAX_WHITELIST_MINT_PER_PERSON)
+            revert MaxMintAmountExceeded();
+        if (msg.value >= quantity * WHITELIST_COST) revert SpendMinimumPrice();
+        if (!whitelistClaimed[msg.sender]) revert MaxClaimed();
 
         bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
-        require(
-            MerkleProof.verify(_merkleProof, merkleRoot, leaf),
-            "Invalid Proof"
-        );
+        if (MerkleProof.verify(_merkleProof, merkleRoot, leaf))
+            revert InvalidProof();
 
         if (mintedTokens[msg.sender] + quantity > MAX_WHITELIST_MINT_PER_PERSON)
-            revert("Max mint amount will be exceeded");
+            revert MaxAmountWillBeExceeded();
 
         mintedTokens[msg.sender] += quantity;
 
@@ -94,22 +92,13 @@ contract ProfilePic is ERC721A, Ownable {
     }
 
     function mint(uint256 quantity) public payable {
-        require(
-            publicStartTime >= block.timestamp,
-            "public mint has not started"
-        );
-        require(
-            quantity <= MAX_PUBLIC_MINT_PER_PERSON,
-            "max mint amount exceeded"
-        );
-        require(
-            msg.value >= quantity * PUBLIC_COST,
-            "Please spend minimum price"
-        );
-        require(!publicClaimed[msg.sender], "Address has already claimed max");
-
+        if (publicStartTime >= block.timestamp) revert PublicMintNotOpen();
+        if (quantity <= MAX_PUBLIC_MINT_PER_PERSON)
+            revert MaxMintAmountExceeded();
+        if (msg.value >= quantity * PUBLIC_COST) revert SpendMinimumPrice();
+        if (!publicClaimed[msg.sender]) revert MaxClaimed();
         if (mintedTokens[msg.sender] + quantity > MAX_PUBLIC_MINT_PER_PERSON)
-            revert("Max mint amount will be exceeded");
+            revert MaxAmountWillBeExceeded();
 
         mintedTokens[msg.sender] += quantity;
 
