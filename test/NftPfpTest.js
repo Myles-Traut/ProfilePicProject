@@ -18,6 +18,15 @@ const {
 
 // Merkel Root
 // 0x59b8eb5570cba0bb401776e0de86c277b085e62cf3c1503934bf88e34c710eea
+let accounts;
+let owner;
+let notWhiteListed;
+let notWhiteListed2;
+let timestamp;
+let whiteListStartTime;
+let publicStartTime;
+let CoreContract;
+let NftPfp;
 
 describe("NftPfP tests", function () {
 
@@ -40,7 +49,6 @@ describe("NftPfP tests", function () {
         await NftPfp.connect(owner).setMerkleRoot(
             "0x59b8eb5570cba0bb401776e0de86c277b085e62cf3c1503934bf88e34c710eea"
         );
-
     });
     
     describe("initialization tests", function () {
@@ -60,7 +68,6 @@ describe("NftPfP tests", function () {
             expect(await NftPfp.mintedTokens(notWhiteListed.address)).to.equal(0);
             expect(await NftPfp.WHITELIST_COST()).to.equal(parseEther("0.002"));
             expect(await NftPfp.PUBLIC_COST()).to.equal(parseEther("0.004"));
-            expect(await NftPfp.getStartingID()).to.equal(1);
         });
 
         describe("Initialization error testing", function () {
@@ -232,7 +239,7 @@ describe("NftPfP tests", function () {
 
             it("MintedQueryForZeroAddress", async () => {
                 await expect(NftPfp.numberMinted(ethers.constants.AddressZero))
-                .to.be.revertedWith("MintedQueryForZeroAddress()")
+                .to.be.revertedWith("MintedQueryForZeroAddress")
             });
         });
     });
@@ -371,7 +378,7 @@ describe("NftPfP tests", function () {
                     { value : parseEther("0.012") }
                 );
 
-                expect(await NftPfp.getOwnerOf(1)).to.equal(notWhiteListed.address);
+                expect(await NftPfp.ownerOf(1)).to.equal(notWhiteListed.address);
 
                 await NftPfp.connect(notWhiteListed).transfer(
                     notWhiteListed.address,
@@ -379,7 +386,7 @@ describe("NftPfP tests", function () {
                     1
                 );
 
-                expect(await NftPfp.getOwnerOf(1)).to.equal(notWhiteListed2.address);
+                expect(await NftPfp.ownerOf(1)).to.equal(notWhiteListed2.address);
                 expect(await NftPfp.balanceOf(notWhiteListed.address)).to.equal(2);
                 expect(await NftPfp.balanceOf(notWhiteListed2.address)).to.equal(1);
 
@@ -448,13 +455,13 @@ describe("NftPfP tests", function () {
                 buyer1MerkleProof,
                 { value : parseEther("0.002") }
             )
-            expect(await NftPfp.getOwnerOf(1)).to.equal(signerWallet1.address);
+            expect(await NftPfp.ownerOf(1)).to.equal(signerWallet1.address);
 
             await NftPfp.connect(notWhiteListed).mint(
                 2,
                 { value : parseEther("0.008") }
             );
-            expect(await NftPfp.getOwnerOf(3)).to.equal(notWhiteListed.address);
+            expect(await NftPfp.ownerOf(3)).to.equal(notWhiteListed.address);
         });
     });
 
@@ -530,22 +537,6 @@ describe("NftPfP tests", function () {
                 )
               ).to.emit(NftPfp, "Minted")
               .withArgs(notWhiteListed.address, 1);
-          });
-
-          it("emits Transfered", async () => {
-            await NftPfp.connect(notWhiteListed).mint(
-                1,
-                { value : parseEther("0.004")});
-            
-            await expect(NftPfp.connect(notWhiteListed).transfer(
-                notWhiteListed.address,
-                signerWallet1.address,
-                1)
-            ).to.emit(NftPfp, "Transfered").withArgs(
-                notWhiteListed.address,
-                signerWallet1.address,
-                1
-                );
           });
 
           it("emits Withdrawn", async () => {

@@ -41,7 +41,6 @@ contract ProfilePic is ERC721A, Ownable {
 
     event WhitelistMinted(address owner, uint256 quantity);
     event Minted(address owner, uint256 quantity);
-    event Transfered(address from, address to, uint256 tokenID);
     event Withdrawn(uint256 amount);
 
     // ERRORS
@@ -117,23 +116,15 @@ contract ProfilePic is ERC721A, Ownable {
         uint256 tokenID
     ) public {
         safeTransferFrom(from_, to_, tokenID);
-        emit Transfered(from_, to_, tokenID);
     }
 
     /*------------------
         View Functions
     --------------------*/
 
-    function getStartingID() public pure returns (uint256) {
-        return _startTokenId();
-    }
-
     function numberMinted(address holder) public view returns (uint256) {
-        return _numberMinted(holder);
-    }
-
-    function getOwnerOf(uint256 tokenID) public view returns (address) {
-        return ownerOf(tokenID);
+        if (holder == address(0)) revert("MintedQueryForZeroAddress");
+        return mintedTokens[holder];
     }
 
     function getBalance() public view onlyOwner returns (uint256) {
@@ -179,7 +170,7 @@ contract ProfilePic is ERC721A, Ownable {
         internal functions
     ----------------------------*/
 
-    function _startTokenId() internal pure override returns (uint256) {
+    function _startTokenId() internal view override returns (uint256) {
         return 1;
     }
 
